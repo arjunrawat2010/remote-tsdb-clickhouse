@@ -288,6 +288,10 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					fmt.Printf("Invalid float64 value for ifIndex: %v (error: %v)\n", ifIndex, ifIndex_err)
 					// Handle the error (e.g., skip or insert default value)
 				}
+				ifAlias := labelsMap["ifAlias"]
+				if ifAlias == "" {
+					ifAlias = ""
+				}
 				queryDebug := fmt.Sprintf(
 					"INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module) VALUES ('%s', %f, '%s', '%s', '%s', '%s', '%s', %f, '%s')",
 					ch.databse_name,
@@ -304,18 +308,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				)
 
 				fmt.Println("Executing SQL:", queryDebug)
-				fmt.Printf("Inserting into %s: timestamp=%v, value=%v, instance=%s, job=%s, auth=%s, env=%s, ifAlias=%s, ifIndex=%v, module=%s\n",
-					tableName,
-					time.UnixMilli(sample.Timestamp).UTC(),
-					sample.Value,
-					labelsMap["instance"],
-					labelsMap["job"],
-					labelsMap["auth"],
-					labelsMap["env"],
-					labelsMap["ifAlias"],
-					ifIndex,
-					labelsMap["module"],
-				)
+
 				result, err := stmt.Exec(
 					time.UnixMilli(sample.Timestamp).UTC(),
 					sample.Value,
@@ -323,7 +316,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					labelsMap["job"],
 					labelsMap["auth"],
 					labelsMap["env"],
-					"ifAlias",
+					labelsMap["ifAlias"],
 					ifIndex,
 					labelsMap["module"],
 				)
