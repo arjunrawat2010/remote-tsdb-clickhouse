@@ -277,7 +277,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					return 0, err
 				}
 				stmtCache[tableName] = stmt
-				fmt.Println(stmt)
+				fmt.Print(stmt)
 			}
 			for _, sample := range ts.Samples {
 
@@ -286,6 +286,15 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					fmt.Printf("Invalid float64 value for ifIndex: %v (error: %v)\n", ifIndex, ifIndex_err)
 					// Handle the error (e.g., skip or insert default value)
 				}
+				fmt.Println("time--", time.UnixMilli(sample.Timestamp).UTC(),
+					"	Value--", sample.Value,
+					"	instance--", labelsMap["instance"],
+					"	job--", labelsMap["job"],
+					"	auth--", labelsMap["auth"],
+					"	env--", labelsMap["env"],
+					"	ifAlias--", labelsMap["ifAlias"],
+					"	ifIndex--", ifIndex,
+					"	module--", labelsMap["module"])
 				result, err := stmt.Exec(
 					time.UnixMilli(sample.Timestamp).UTC(),
 					sample.Value,
