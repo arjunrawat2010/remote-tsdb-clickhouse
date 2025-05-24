@@ -147,22 +147,22 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 	count := 0
 
 	for _, ts := range req.Timeseries {
-		// fmt.Println("ts----", ts)
+		fmt.Println("1--ts----", ts)
 		// fmt.Println("ts----", ts.Labels)
 		var metricName string
 		labelsMap := make(map[string]string)
 
 		for _, label := range ts.Labels {
-			// fmt.Println("label Name----", label.Name, "-- value --", label.Value)
+			fmt.Println("2--label Name----", label.Name, "-- value --", label.Value)
 			if label.Name == "__name__" {
 				metricName = label.Value
 			} else {
 				labelsMap[label.Name] = label.Value
 			}
-			// fmt.Println("label----", label)
+			fmt.Println("3--label----", label)
 		}
-		fmt.Println("labelsMap----", labelsMap)
-		fmt.Println("-- instance --",
+		fmt.Println("4--labelsMap----", labelsMap)
+		fmt.Println("5 -- instance --",
 			labelsMap["instance"], "-- job --",
 			labelsMap["job"], "-- auth --",
 			labelsMap["auth"], "-- env --",
@@ -277,8 +277,8 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					return 0, err
 				}
 				stmtCache[tableName] = stmt
-				fmt.Println(stmt)
-				fmt.Println("Lebels Map --", labelsMap)
+				fmt.Println("6--stmt", stmt)
+				fmt.Println("7--Lebels Map --", labelsMap)
 			}
 			for _, sample := range ts.Samples {
 
@@ -287,7 +287,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					fmt.Printf("Invalid float64 value for ifIndex: %v (error: %v)\n", ifIndex, ifIndex_err)
 					// Handle the error (e.g., skip or insert default value)
 				}
-				fmt.Println("time--", time.UnixMilli(sample.Timestamp).UTC(),
+				fmt.Println("8--time--", time.UnixMilli(sample.Timestamp).UTC(),
 					"	Value--", sample.Value,
 					"	instance--", labelsMap["instance"],
 					"	job--", labelsMap["job"],
@@ -313,7 +313,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					fmt.Println("result --", result)
 					rowsAffected, _ := result.RowsAffected()
 					lastInsertId, _ := result.LastInsertId() // May not be supported by ClickHouse driver
-					fmt.Printf("%s Insert successful: %d rows affected, last insert ID: %d /n", tableName, rowsAffected, lastInsertId)
+					fmt.Printf("9--%s Insert successful: %d rows affected, last insert ID: %d /n", tableName, rowsAffected, lastInsertId)
 				}
 				count++
 			}
