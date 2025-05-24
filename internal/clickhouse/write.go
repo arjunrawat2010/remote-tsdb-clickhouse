@@ -335,10 +335,10 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					fmt.Println(resultLog)
 				}
 				count++
-				if err := tx.Commit(); err != nil {
-					return 0, err
-				}
-				commitDone = true
+				// if err := tx.Commit(); err != nil {
+				// 	return 0, err
+				// }
+				// commitDone = true
 			}
 		case "ifDescr":
 			stmt, ok := stmtCache[tableName]
@@ -506,9 +506,13 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		}
 	}
 
+	// if err := tx.Commit(); err != nil {
+	// 	return 0, err
+	// }
 	if err := tx.Commit(); err != nil {
 		return 0, err
 	}
+	commitDone = true
 
 	return count, nil
 }
