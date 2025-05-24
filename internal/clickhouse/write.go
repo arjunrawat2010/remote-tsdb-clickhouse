@@ -148,11 +148,12 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 
 	for _, ts := range req.Timeseries {
 		fmt.Println("ts----", ts)
+		fmt.Println("ts----", ts.Labels)
 		var metricName string
 		labelsMap := make(map[string]string)
 
 		for _, label := range ts.Labels {
-			fmt.Println("label Name----", ts)
+			fmt.Println("label Name----", label.Name)
 			if label.Name == "__name__" {
 				metricName = label.Value
 			} else {
