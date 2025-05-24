@@ -277,6 +277,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					return 0, err
 				}
 				stmtCache[tableName] = stmt
+				fmt.Println(stmt)
 			}
 			for _, sample := range ts.Samples {
 
@@ -299,6 +300,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				if err != nil {
 					return 0, err
 				} else {
+					fmt.Println("result --", result)
 					rowsAffected, _ := result.RowsAffected()
 					lastInsertId, _ := result.LastInsertId() // May not be supported by ClickHouse driver
 					fmt.Printf("%s Insert successful: %d rows affected, last insert ID: %d /n", tableName, rowsAffected, lastInsertId)
