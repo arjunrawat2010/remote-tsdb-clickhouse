@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"remote-tsdb-clickhouse/internal/clickhouse"
 	"strings"
 
-	"github.com/jamessanford/remote-tsdb-clickhouse/internal/clickhouse"
+	// "github.com/jamessanford/remote-tsdb-clickhouse/internal/clickhouse"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -80,7 +81,7 @@ func main() {
 	var readIgnoreHints bool
 	var debug bool
 	flag.StringVar(&httpAddr, "http", "9131", "listen on this [address:]port")
-	flag.StringVar(&clickAddr, "db", "127.0.0.1:9000", "ClickHouse DB at this address:port")
+	flag.StringVar(&clickAddr, "db", "10.111.1.224:9000", "ClickHouse DB at this address:port")
 	flag.StringVar(&database, "db.database", "default", "ClickHouse database")
 	flag.StringVar(&username, "db.username", "default", "ClickHouse username")
 	flag.StringVar(&password, "db.password", "", "ClickHouse password")
@@ -158,7 +159,7 @@ func main() {
 		zap.String("db", clickAddr),
 		zap.String("table", table),
 	)
-
+	logger.Info("starting server", zap.String("listen", httpAddr))
 	if err := http.ListenAndServe(httpAddr, nil); err != nil {
 		logger.Fatal("ListenAndServe", zap.Error(err))
 	}

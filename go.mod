@@ -1,4 +1,4 @@
-module github.com/jamessanford/remote-tsdb-clickhouse
+module remote-tsdb-clickhouse
 
 go 1.24.0
 
