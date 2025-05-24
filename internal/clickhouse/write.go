@@ -134,8 +134,11 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 	if err != nil {
 		return 0, err
 	}
+	commitDone := false
 	defer func() {
-		_ = tx.Rollback() // rollback if not committed
+		if !commitDone {
+			_ = tx.Rollback()
+		}
 	}()
 
 	stmtCache := make(map[string]*sql.Stmt)
@@ -332,6 +335,10 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					fmt.Println(resultLog)
 				}
 				count++
+				if err := tx.Commit(); err != nil {
+					return 0, err
+				}
+				commitDone = true
 			}
 		case "ifDescr":
 			stmt, ok := stmtCache[tableName]
