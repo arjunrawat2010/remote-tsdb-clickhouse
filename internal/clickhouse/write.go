@@ -289,7 +289,8 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					// Handle the error (e.g., skip or insert default value)
 				}
 				queryDebug := fmt.Sprintf(
-					"INSERT INTO %s (updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module) VALUES ('%s', %f, '%s', '%s', '%s', '%s', '%s', %f, '%s')",
+					"INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module) VALUES ('%s', %f, '%s', '%s', '%s', '%s', '%s', %f, '%s')",
+					ch.databse_name,
 					tableName,
 					time.UnixMilli(sample.Timestamp).UTC().Format("2006-01-02 15:04:05"),
 					sample.Value,
