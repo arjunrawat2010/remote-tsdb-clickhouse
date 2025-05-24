@@ -147,17 +147,20 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 	count := 0
 
 	for _, ts := range req.Timeseries {
+		fmt.Println("ts----", ts)
 		var metricName string
 		labelsMap := make(map[string]string)
 
 		for _, label := range ts.Labels {
+			fmt.Println("label Name----", ts)
 			if label.Name == "__name__" {
 				metricName = label.Value
 			} else {
 				labelsMap[label.Name] = label.Value
 			}
+			//fmt.Println("labelsMap----",labelsMap)
 		}
-
+		fmt.Println("labelsMap----", labelsMap)
 		// Define target table name (e.g., "metrics_<metricName>")
 		tableName := fmt.Sprintf("metrics_%s", metricName)
 
@@ -458,7 +461,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 
 		default:
 			// Unknown metric — skip or log
-			fmt.Printf("Skipping unknown metric: %s\n", metricName)
+			//fmt.Printf("Skipping unknown metric: %s\n", metricName)
 		}
 	}
 
