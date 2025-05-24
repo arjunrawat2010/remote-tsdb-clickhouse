@@ -153,13 +153,13 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		labelsMap := make(map[string]string)
 
 		for _, label := range ts.Labels {
-			fmt.Println("label Name----", label.Name)
+			fmt.Println("label Name----", label.Name, "-- value --", label.Value)
 			if label.Name == "__name__" {
 				metricName = label.Value
 			} else {
 				labelsMap[label.Name] = label.Value
 			}
-			//fmt.Println("labelsMap----",labelsMap)
+			fmt.Println("label----", label)
 		}
 		fmt.Println("labelsMap----", labelsMap)
 		// Define target table name (e.g., "metrics_<metricName>")
