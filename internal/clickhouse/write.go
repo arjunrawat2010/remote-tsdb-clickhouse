@@ -130,7 +130,7 @@ import (
 //	}
 func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.WriteRequest) (int, error) {
 	tx, err := ch.db.Begin()
-	fmt.Println("database---", ch.databse_name)
+	// fmt.Println("database---", ch.databse_name)
 	if err != nil {
 		return 0, err
 	}
@@ -180,7 +180,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 			stmt, ok := stmtCache[tableName]
 			if !ok {
 				stmt, err = tx.PrepareContext(ctx, fmt.Sprintf(
-					"INSERT INTO %s (updated_at, value, instance, job, auth, env, hwCpuDevIndex, hwFrameIndex, hwSlotIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", tableName))
+					"INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, hwCpuDevIndex, hwFrameIndex, hwSlotIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ch.databse_name, tableName))
 				if err != nil {
 					return 0, err
 				}
@@ -220,15 +220,20 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				} else {
 					rowsAffected, _ := result.RowsAffected()
 					lastInsertId, _ := result.LastInsertId() // May not be supported by ClickHouse driver
-					fmt.Printf("%s Insert successful: %d rows affected, last insert ID: %d /n", tableName, rowsAffected, lastInsertId)
+					resultLog := fmt.Sprintf("9--%s Insert successful: %d rows affected, last insert ID: %d", tableName, rowsAffected, lastInsertId)
+					fmt.Println(resultLog)
 				}
 				count++
+				if err := tx.Commit(); err != nil {
+					return 0, err
+				}
+				commitDone = true
 			}
 		case "hwMemoryDevFree":
 			stmt, ok := stmtCache[tableName]
 			if !ok {
 				stmt, err = tx.PrepareContext(ctx, fmt.Sprintf(
-					"INSERT INTO %s (updated_at, value, instance, job, auth, env, hwMemoryDevModuleIndex, hwFrameIndex, hwSlotIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", tableName))
+					"INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, hwMemoryDevModuleIndex, hwFrameIndex, hwSlotIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ch.databse_name, tableName))
 				if err != nil {
 					return 0, err
 				}
@@ -268,14 +273,19 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				} else {
 					rowsAffected, _ := result.RowsAffected()
 					lastInsertId, _ := result.LastInsertId() // May not be supported by ClickHouse driver
-					fmt.Printf("%s Insert successful: %d rows affected, last insert ID: %d /n", tableName, rowsAffected, lastInsertId)
+					resultLog := fmt.Sprintf("9--%s Insert successful: %d rows affected, last insert ID: %d", tableName, rowsAffected, lastInsertId)
+					fmt.Println(resultLog)
 				}
 				count++
+				if err := tx.Commit(); err != nil {
+					return 0, err
+				}
+				commitDone = true
 			}
 		case "ifAlias":
 			stmt, ok := stmtCache[tableName]
-			fmt.Println("stmtCache", stmtCache)
-			fmt.Println("stmtCache ta--", stmtCache[tableName])
+			// fmt.Println("stmtCache", stmtCache)
+			// fmt.Println("stmtCache ta--", stmtCache[tableName])
 			if !ok {
 				stmt, err = tx.PrepareContext(ctx, fmt.Sprintf(
 					"INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", ch.databse_name, tableName))
@@ -283,7 +293,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					return 0, err
 				}
 				stmtCache[tableName] = stmt
-				fmt.Println("6--stmt", stmt)
+				// fmt.Println("6--stmt", stmt)
 				// fmt.Println("7--Lebels Map --", labelsMap)
 			}
 			for _, sample := range ts.Samples {
@@ -335,16 +345,16 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					fmt.Println(resultLog)
 				}
 				count++
-				// if err := tx.Commit(); err != nil {
-				// 	return 0, err
-				// }
-				// commitDone = true
+				if err := tx.Commit(); err != nil {
+					return 0, err
+				}
+				commitDone = true
 			}
 		case "ifDescr":
 			stmt, ok := stmtCache[tableName]
 			if !ok {
 				stmt, err = tx.PrepareContext(ctx, fmt.Sprintf(
-					"INSERT INTO %s (updated_at, value, instance, job, auth, env, ifDescr, ifIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", tableName))
+					"INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, ifDescr, ifIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", ch.databse_name, tableName))
 				if err != nil {
 					return 0, err
 				}
@@ -373,15 +383,20 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				} else {
 					rowsAffected, _ := result.RowsAffected()
 					lastInsertId, _ := result.LastInsertId() // May not be supported by ClickHouse driver
-					fmt.Printf("%s Insert successful: %d rows affected, last insert ID: %d /n", tableName, rowsAffected, lastInsertId)
+					resultLog := fmt.Sprintf("9--%s Insert successful: %d rows affected, last insert ID: %d", tableName, rowsAffected, lastInsertId)
+					fmt.Println(resultLog)
 				}
 				count++
+				if err := tx.Commit(); err != nil {
+					return 0, err
+				}
+				commitDone = true
 			}
 		case "ifName":
 			stmt, ok := stmtCache[tableName]
 			if !ok {
 				stmt, err = tx.PrepareContext(ctx, fmt.Sprintf(
-					"INSERT INTO %s (updated_at, value, instance, job, auth, env, ifName, ifIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", tableName))
+					"INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, ifName, ifIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", ch.databse_name, tableName))
 				if err != nil {
 					return 0, err
 				}
@@ -410,15 +425,20 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				} else {
 					rowsAffected, _ := result.RowsAffected()
 					lastInsertId, _ := result.LastInsertId() // May not be supported by ClickHouse driver
-					fmt.Printf("%s Insert successful: %d rows affected, last insert ID: %d /n", tableName, rowsAffected, lastInsertId)
+					resultLog := fmt.Sprintf("9--%s Insert successful: %d rows affected, last insert ID: %d", tableName, rowsAffected, lastInsertId)
+					fmt.Println(resultLog)
 				}
 				count++
+				if err := tx.Commit(); err != nil {
+					return 0, err
+				}
+				commitDone = true
 			}
 		case "sysDescr":
 			stmt, ok := stmtCache[tableName]
 			if !ok {
 				stmt, err = tx.PrepareContext(ctx, fmt.Sprintf(
-					"INSERT INTO %s (updated_at, value, instance, job, auth, env, sysDescr, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", tableName))
+					"INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, sysDescr, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", ch.databse_name, tableName))
 				if err != nil {
 					return 0, err
 				}
@@ -446,9 +466,14 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				} else {
 					rowsAffected, _ := result.RowsAffected()
 					lastInsertId, _ := result.LastInsertId() // May not be supported by ClickHouse driver
-					fmt.Printf("%s Insert successful: %d rows affected, last insert ID: %d /n", tableName, rowsAffected, lastInsertId)
+					resultLog := fmt.Sprintf("9--%s Insert successful: %d rows affected, last insert ID: %d", tableName, rowsAffected, lastInsertId)
+					fmt.Println(resultLog)
 				}
 				count++
+				if err := tx.Commit(); err != nil {
+					return 0, err
+				}
+				commitDone = true
 			}
 		case "ifAdminStatus":
 		case "ifConnectorPresent":
@@ -467,7 +492,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 			stmt, ok := stmtCache[tableName]
 			if !ok {
 				stmt, err = tx.PrepareContext(ctx, fmt.Sprintf(
-					"INSERT INTO %s (updated_at, value, instance, job, auth, env, ifIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", tableName))
+					"INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, ifIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", ch.databse_name, tableName))
 				if err != nil {
 					return 0, err
 				}
@@ -495,9 +520,14 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				} else {
 					rowsAffected, _ := result.RowsAffected()
 					lastInsertId, _ := result.LastInsertId() // May not be supported by ClickHouse driver
-					fmt.Printf("%s Insert successful: %d rows affected, last insert ID: %d /n", tableName, rowsAffected, lastInsertId)
+					resultLog := fmt.Sprintf("9--%s Insert successful: %d rows affected, last insert ID: %d", tableName, rowsAffected, lastInsertId)
+					fmt.Println(resultLog)
 				}
 				count++
+				if err := tx.Commit(); err != nil {
+					return 0, err
+				}
+				commitDone = true
 			}
 
 		default:
@@ -506,13 +536,9 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		}
 	}
 
-	// if err := tx.Commit(); err != nil {
-	// 	return 0, err
-	// }
 	if err := tx.Commit(); err != nil {
 		return 0, err
 	}
-	commitDone = true
 
 	return count, nil
 }
