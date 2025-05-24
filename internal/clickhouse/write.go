@@ -306,7 +306,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					labelsMap["job"],
 					labelsMap["auth"],
 					labelsMap["env"],
-					labelsMap["ifAlias"],
+					"ifAlias",
 					ifIndex,
 					labelsMap["module"],
 				)
