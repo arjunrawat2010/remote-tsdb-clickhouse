@@ -271,6 +271,8 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 			}
 		case "ifAlias":
 			stmt, ok := stmtCache[tableName]
+			fmt.Println("stmtCache", stmtCache)
+			fmt.Println("stmtCache ta--", stmtCache[tableName])
 			if !ok {
 				stmt, err = tx.PrepareContext(ctx, fmt.Sprintf(
 					"INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", ch.databse_name, tableName))
@@ -326,7 +328,8 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					fmt.Println("result --", result)
 					rowsAffected, _ := result.RowsAffected()
 					lastInsertId, _ := result.LastInsertId() // May not be supported by ClickHouse driver
-					fmt.Printf("9--%s Insert successful: %d rows affected, last insert ID: %d /n", tableName, rowsAffected, lastInsertId)
+					resultLog := fmt.Sprintf("9--%s Insert successful: %d rows affected, last insert ID: %d", tableName, rowsAffected, lastInsertId)
+					fmt.Println(resultLog)
 				}
 				count++
 			}
