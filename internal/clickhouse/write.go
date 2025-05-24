@@ -287,15 +287,18 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					fmt.Printf("Invalid float64 value for ifIndex: %v (error: %v)\n", ifIndex, ifIndex_err)
 					// Handle the error (e.g., skip or insert default value)
 				}
-				fmt.Println("8--time--", time.UnixMilli(sample.Timestamp).UTC(),
-					"	Value--", sample.Value,
-					"	instance--", labelsMap["instance"],
-					"	job--", labelsMap["job"],
-					"	auth--", labelsMap["auth"],
-					"	env--", labelsMap["env"],
-					"	ifAlias--", labelsMap["ifAlias"],
-					"	ifIndex--", ifIndex,
-					"	module--", labelsMap["module"])
+				fmt.Printf("Inserting into %s: timestamp=%v, value=%v, instance=%s, job=%s, auth=%s, env=%s, ifAlias=%s, ifIndex=%v, module=%s\n",
+					tableName,
+					time.UnixMilli(sample.Timestamp).UTC(),
+					sample.Value,
+					labelsMap["instance"],
+					labelsMap["job"],
+					labelsMap["auth"],
+					labelsMap["env"],
+					labelsMap["ifAlias"],
+					ifIndex,
+					labelsMap["module"],
+				)
 				result, err := stmt.Exec(
 					time.UnixMilli(sample.Timestamp).UTC(),
 					sample.Value,
@@ -303,7 +306,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					labelsMap["job"],
 					labelsMap["auth"],
 					labelsMap["env"],
-					"ifAlias",
+					labelsMap["ifAlias"],
 					ifIndex,
 					labelsMap["module"],
 				)
