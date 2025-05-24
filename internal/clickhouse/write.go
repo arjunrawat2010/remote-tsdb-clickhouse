@@ -277,7 +277,8 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					return 0, err
 				}
 				stmtCache[tableName] = stmt
-				fmt.Print(stmt)
+				fmt.Println(stmt)
+				fmt.Println("Lebels Map --", labelsMap["ifIndex"])
 			}
 			for _, sample := range ts.Samples {
 
