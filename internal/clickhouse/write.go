@@ -273,7 +273,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 			stmt, ok := stmtCache[tableName]
 			if !ok {
 				stmt, err = tx.PrepareContext(ctx, fmt.Sprintf(
-					"INSERT INTO %s (updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", tableName))
+					"INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", ch.databse_name, tableName))
 				if err != nil {
 					return 0, err
 				}
