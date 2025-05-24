@@ -147,26 +147,26 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 	count := 0
 
 	for _, ts := range req.Timeseries {
-		fmt.Println("1--ts----", ts)
+		// fmt.Println("1--ts----", ts)
 		// fmt.Println("ts----", ts.Labels)
 		var metricName string
 		labelsMap := make(map[string]string)
 
 		for _, label := range ts.Labels {
-			fmt.Println("2--label Name----", label.Name, "-- value --", label.Value)
+			// fmt.Println("2--label Name----", label.Name, "-- value --", label.Value)
 			if label.Name == "__name__" {
 				metricName = label.Value
 			} else {
 				labelsMap[label.Name] = label.Value
 			}
-			fmt.Println("3--label----", label)
+			// fmt.Println("3--label----", label)
 		}
-		fmt.Println("4--labelsMap----", labelsMap)
-		fmt.Println("5 -- instance --",
-			labelsMap["instance"], "-- job --",
-			labelsMap["job"], "-- auth --",
-			labelsMap["auth"], "-- env --",
-			labelsMap["env"])
+		// fmt.Println("4--labelsMap----", labelsMap)
+		// fmt.Println("5 -- instance --",
+		// 	labelsMap["instance"], "-- job --",
+		// 	labelsMap["job"], "-- auth --",
+		// 	labelsMap["auth"], "-- env --",
+		// 	labelsMap["env"])
 		// Define target table name (e.g., "metrics_<metricName>")
 		tableName := fmt.Sprintf("metrics_%s", metricName)
 
@@ -277,8 +277,8 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					return 0, err
 				}
 				stmtCache[tableName] = stmt
-				fmt.Println("6--stmt", stmt)
-				fmt.Println("7--Lebels Map --", labelsMap)
+				// fmt.Println("6--stmt", stmt)
+				// fmt.Println("7--Lebels Map --", labelsMap)
 			}
 			for _, sample := range ts.Samples {
 
