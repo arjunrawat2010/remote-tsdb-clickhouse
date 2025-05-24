@@ -307,22 +307,22 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				if ifAlias == "" {
 					ifAlias = ""
 				}
-				queryDebug := fmt.Sprintf(
-					"INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module) VALUES ('%s', %f, '%s', '%s', '%s', '%s', '%s', %f, '%s')",
-					ch.databse_name,
-					tableName,
-					time.UnixMilli(sample.Timestamp).UTC().Format("2006-01-02 15:04:05"),
-					sample.Value,
-					labelsMap["instance"],
-					labelsMap["job"],
-					labelsMap["auth"],
-					labelsMap["env"],
-					labelsMap["ifAlias"],
-					ifIndex,
-					labelsMap["module"],
-				)
+				// queryDebug := fmt.Sprintf(
+				// 	"INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module) VALUES ('%s', %f, '%s', '%s', '%s', '%s', '%s', %f, '%s')",
+				// 	ch.databse_name,
+				// 	tableName,
+				// 	time.UnixMilli(sample.Timestamp).UTC().Format("2006-01-02 15:04:05"),
+				// 	sample.Value,
+				// 	labelsMap["instance"],
+				// 	labelsMap["job"],
+				// 	labelsMap["auth"],
+				// 	labelsMap["env"],
+				// 	labelsMap["ifAlias"],
+				// 	ifIndex,
+				// 	labelsMap["module"],
+				// )
 
-				fmt.Println("Executing SQL:", queryDebug)
+				// fmt.Println("Executing SQL:", queryDebug)
 
 				result, err := stmt.Exec(
 					time.UnixMilli(sample.Timestamp).UTC(),
@@ -338,7 +338,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				if err != nil {
 					return 0, err
 				} else {
-					fmt.Println("result --", result)
+					// fmt.Println("result --", result)
 					rowsAffected, _ := result.RowsAffected()
 					lastInsertId, _ := result.LastInsertId() // May not be supported by ClickHouse driver
 					resultLog := fmt.Sprintf("9--%s Insert successful: %d rows affected, last insert ID: %d", tableName, rowsAffected, lastInsertId)
