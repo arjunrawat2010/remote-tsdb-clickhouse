@@ -18,6 +18,7 @@ type ClickHouseAdapter struct {
 	// PrepareBatch and Query correctly with multiple goroutines, despite
 	// technically being a "driver.Conn"
 	db              *sql.DB
+	databse_name    string
 	table           string
 	readIgnoreLabel string
 	readIgnoreHints bool
@@ -65,6 +66,7 @@ func NewClickHouseAdapter(config *Config) (*ClickHouseAdapter, error) {
 
 	return &ClickHouseAdapter{
 		db:              db,
+		databse_name:    config.Database,
 		table:           config.Table,
 		readIgnoreLabel: config.ReadIgnoreLabel,
 		readIgnoreHints: config.ReadIgnoreHints,

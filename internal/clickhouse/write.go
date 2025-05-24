@@ -130,6 +130,7 @@ import (
 //	}
 func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.WriteRequest) (int, error) {
 	tx, err := ch.db.Begin()
+	fmt.Println("database---", ch.databse_name)
 	if err != nil {
 		return 0, err
 	}
