@@ -669,6 +669,7 @@ func getInsertQuery(db, metric string, tableName string) string {
 }
 
 func buildParams(sample prompb.Sample, labels map[string]string) []interface{} {
+	fmt.Println("buildParams", labels["__name__"], "Row values:")
 	t := time.UnixMilli(sample.Timestamp).UTC()
 	v := sample.Value
 	switch labels["__name__"] {
