@@ -492,7 +492,9 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 
 	// Helper function to get or create batch for a table
 	getBatch := func(tableName, columnList string) (driver.Batch, error) {
+
 		batch, exists := batches[tableName]
+		fmt.Println(tableName, batch, exists)
 		if exists {
 			return batch, nil
 		}
