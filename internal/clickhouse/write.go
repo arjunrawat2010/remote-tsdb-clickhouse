@@ -336,6 +336,114 @@
 // 	return f
 // }
 
+// package clickhouse
+
+// import (
+// 	"context"
+// 	"fmt"
+// 	"strconv"
+// 	"time"
+
+// 	// "github.com/ClickHouse/clickhouse-go/v2"
+// 	"github.com/prometheus/prometheus/prompb"
+// )
+
+// func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.WriteRequest) (int, error) {
+// 	conn := ch.db // clickhouse.Conn from clickhouse-go/v2
+// 	batch, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s VALUES", ch.table))
+// 	if err != nil {
+// 		return 0, err
+// 	}
+
+// 	count := 0
+// 	for _, ts := range req.Timeseries {
+// 		var metricName string
+// 		labelsMap := make(map[string]string)
+
+// 		for _, label := range ts.Labels {
+// 			if label.Name == "__name__" {
+// 				metricName = label.Value
+// 			} else {
+// 				labelsMap[label.Name] = label.Value
+// 			}
+// 		}
+
+// 		switch metricName {
+// 		case "hwAvgDuty5min":
+// 			for _, sample := range ts.Samples {
+// 				hwCpuDevIndex, _ := strconv.ParseFloat(labelsMap["hwCpuDevIndex"], 64)
+// 				hwFrameIndex, _ := strconv.ParseFloat(labelsMap["hwFrameIndex"], 64)
+// 				hwSlotIndex, _ := strconv.ParseFloat(labelsMap["hwSlotIndex"], 64)
+// 				err := batch.Append(
+// 					time.UnixMilli(sample.Timestamp).UTC(),
+// 					sample.Value,
+// 					labelsMap["instance"],
+// 					labelsMap["job"],
+// 					labelsMap["auth"],
+// 					labelsMap["env"],
+// 					hwCpuDevIndex,
+// 					hwFrameIndex,
+// 					hwSlotIndex,
+// 					labelsMap["module"],
+// 				)
+// 				if err != nil {
+// 					return 0, err
+// 				}
+// 				count++
+// 			}
+// 		case "hwMemoryDevFree":
+// 			for _, sample := range ts.Samples {
+// 				hwMemoryDevModuleIndex, _ := strconv.ParseFloat(labelsMap["hwMemoryDevModuleIndex"], 64)
+// 				hwFrameIndex, _ := strconv.ParseFloat(labelsMap["hwFrameIndex"], 64)
+// 				hwSlotIndex, _ := strconv.ParseFloat(labelsMap["hwSlotIndex"], 64)
+// 				err := batch.Append(
+// 					time.UnixMilli(sample.Timestamp).UTC(),
+// 					sample.Value,
+// 					labelsMap["instance"],
+// 					labelsMap["job"],
+// 					labelsMap["auth"],
+// 					labelsMap["env"],
+// 					hwMemoryDevModuleIndex,
+// 					hwFrameIndex,
+// 					hwSlotIndex,
+// 					labelsMap["module"],
+// 				)
+// 				if err != nil {
+// 					return 0, err
+// 				}
+// 				count++
+// 			}
+// 		case "ifAlias", "ifDescr", "ifName":
+// 			fmt.Println("metricName--", metricName)
+// 			for _, sample := range ts.Samples {
+// 				ifIndex, _ := strconv.ParseFloat(labelsMap["ifIndex"], 64)
+// 				err := batch.Append(
+// 					time.UnixMilli(sample.Timestamp).UTC(),
+// 					sample.Value,
+// 					labelsMap["instance"],
+// 					labelsMap["job"],
+// 					labelsMap["auth"],
+// 					labelsMap["env"],
+// 					labelsMap[metricName], // ifAlias/ifDescr/ifName
+// 					ifIndex,
+// 					labelsMap["module"],
+// 				)
+// 				if err != nil {
+// 					return 0, err
+// 				}
+// 				count++
+// 			}
+// 		default:
+// 			fmt.Printf("Unsupported metric: %s\n", metricName)
+// 		}
+// 	}
+
+// 	if err := batch.Send(); err != nil {
+// 		return 0, err
+// 	}
+// 	return count, nil
+// }
+
 package clickhouse
 
 import (
@@ -344,18 +452,13 @@ import (
 	"strconv"
 	"time"
 
-	// "github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/prometheus/prometheus/prompb"
 )
 
 func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.WriteRequest) (int, error) {
 	conn := ch.db // clickhouse.Conn from clickhouse-go/v2
-	batch, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s VALUES", ch.table))
-	if err != nil {
-		return 0, err
-	}
-
 	count := 0
+
 	for _, ts := range req.Timeseries {
 		var metricName string
 		labelsMap := make(map[string]string)
@@ -366,6 +469,12 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 			} else {
 				labelsMap[label.Name] = label.Value
 			}
+		}
+
+		tableName := fmt.Sprintf("metrics_%s", metricName)
+		batch, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s VALUES", tableName))
+		if err != nil {
+			return 0, fmt.Errorf("prepare batch for table %s: %w", tableName, err)
 		}
 
 		switch metricName {
@@ -391,6 +500,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				}
 				count++
 			}
+
 		case "hwMemoryDevFree":
 			for _, sample := range ts.Samples {
 				hwMemoryDevModuleIndex, _ := strconv.ParseFloat(labelsMap["hwMemoryDevModuleIndex"], 64)
@@ -413,6 +523,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				}
 				count++
 			}
+
 		case "ifAlias", "ifDescr", "ifName":
 			for _, sample := range ts.Samples {
 				ifIndex, _ := strconv.ParseFloat(labelsMap["ifIndex"], 64)
@@ -423,7 +534,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					labelsMap["job"],
 					labelsMap["auth"],
 					labelsMap["env"],
-					labelsMap[metricName], // ifAlias/ifDescr/ifName
+					labelsMap[metricName],
 					ifIndex,
 					labelsMap["module"],
 				)
@@ -432,13 +543,16 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				}
 				count++
 			}
+
 		default:
 			fmt.Printf("Unsupported metric: %s\n", metricName)
+			continue
+		}
+
+		if err := batch.Send(); err != nil {
+			return 0, fmt.Errorf("send batch to table %s: %w", tableName, err)
 		}
 	}
 
-	if err := batch.Send(); err != nil {
-		return 0, err
-	}
 	return count, nil
 }
