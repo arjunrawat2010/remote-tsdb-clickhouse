@@ -78,7 +78,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 	// }
 	// defer stmt.Close()
 
-	// count := 0
+	count := 0
 
 	for _, ts := range req.Timeseries {
 		var metricName string
@@ -93,7 +93,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 
 		tableName := fmt.Sprintf("metrics_%s", metricName)
 		query := getInsertQuery(ch.databse_name, metricName, tableName)
-		count := 0
+
 		if query != "" {
 			fmt.Println(query)
 			stmt, err := tx.PrepareContext(ctx, query)
@@ -101,6 +101,17 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				return 0, err
 			}
 			defer stmt.Close()
+			for _, sample := range ts.Samples {
+
+				fmt.Println("ts.Samples inside--", labelsMap)
+				params := buildParams(sample, labelsMap, metricName)
+				fmt.Println(params...)
+				_, err := stmt.Exec(params...)
+				if err != nil {
+					return 0, err
+				}
+				count++
+			}
 			// stmtCache[metricName] = stmt
 		} else {
 			return 0, nil
@@ -120,29 +131,29 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		// 	}
 		// }
 
-		for _, sample := range ts.Samples {
+		// for _, sample := range ts.Samples {
 
-			fmt.Println("ts.Samples inside--", labelsMap)
-			params := buildParams(sample, labelsMap, metricName)
-			fmt.Println(params...)
-			_, err := stmt.Exec(params...)
-			if err != nil {
-				return 0, err
-			}
+		// 	fmt.Println("ts.Samples inside--", labelsMap)
+		// 	params := buildParams(sample, labelsMap, metricName)
+		// 	fmt.Println(params...)
+		// 	_, err := stmt.Exec(params...)
+		// 	if err != nil {
+		// 		return 0, err
+		// 	}
 
-			// _, err := stmt.Exec(
-			// 	time.UnixMilli(s.Timestamp).UTC(),
-			// 	name,
-			// 	s.Value,
-			// 	instance,
-			// 	job,
-			// 	env,
-			// )
-			// if err != nil {
-			// 	return 0, err
-			// }
-			count++
-		}
+		// 	// _, err := stmt.Exec(
+		// 	// 	time.UnixMilli(s.Timestamp).UTC(),
+		// 	// 	name,
+		// 	// 	s.Value,
+		// 	// 	instance,
+		// 	// 	job,
+		// 	// 	env,
+		// 	// )
+		// 	// if err != nil {
+		// 	// 	return 0, err
+		// 	// }
+		// 	count++
+		// }
 	}
 
 	err = tx.Commit()
