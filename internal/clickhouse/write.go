@@ -616,7 +616,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		fmt.Println("ts.Samples--", ts.Samples)
 		for _, sample := range ts.Samples {
 			fmt.Println("ts.Samples inside--", labelsMap)
-			params := buildParams(sample, labelsMap)
+			params := buildParams(sample, labelsMap, metricName)
 			fmt.Println(params...)
 			batchCache[metricName] = append(batchCache[metricName], params...)
 			count++
@@ -668,30 +668,30 @@ func getInsertQuery(db, metric string, tableName string) string {
 	}
 }
 
-func buildParams(sample prompb.Sample, labels map[string]string) []interface{} {
-	fmt.Println("buildParams", labels["__name__"], "Row values:")
+func buildParams(sample prompb.Sample, labels map[string]string, metricName string) []interface{} {
+	fmt.Println("buildParams", metricName, "Row values:")
 	t := time.UnixMilli(sample.Timestamp).UTC()
 	v := sample.Value
-	switch labels["__name__"] {
+	switch metricName {
 	case "hwAvgDuty5min":
 		row := []interface{}{t, v, labels["instance"], labels["job"], labels["auth"], labels["env"], parseFloat(labels["hwCpuDevIndex"]), parseFloat(labels["hwFrameIndex"]), parseFloat(labels["hwSlotIndex"]), labels["module"]}
-		fmt.Println("buildParams", labels["__name__"], "Row values:", row)
+		fmt.Println("buildParams", metricName, "Row values:", row)
 		return row
 	case "hwMemoryDevFree":
 		row := []interface{}{t, v, labels["instance"], labels["job"], labels["auth"], labels["env"], parseFloat(labels["hwMemoryDevModuleIndex"]), parseFloat(labels["hwFrameIndex"]), parseFloat(labels["hwSlotIndex"]), labels["module"]}
-		fmt.Println("buildParams", labels["__name__"], "Row values:", row)
+		fmt.Println("buildParams", metricName, "Row values:", row)
 		return row
 	case "ifAlias":
 		row := []interface{}{t, v, labels["instance"], labels["job"], labels["auth"], labels["env"], labels["ifAlias"], parseFloat(labels["ifIndex"]), labels["module"]}
-		fmt.Println("buildParams", labels["__name__"], "Row values:", row)
+		fmt.Println("buildParams", metricName, "Row values:", row)
 		return row
 	case "ifDescr":
 		row := []interface{}{t, v, labels["instance"], labels["job"], labels["auth"], labels["env"], labels["ifDescr"], parseFloat(labels["ifIndex"]), labels["module"]}
-		fmt.Println("buildParams", labels["__name__"], "Row values:", row)
+		fmt.Println("buildParams", metricName, "Row values:", row)
 		return row
 	case "ifName":
 		row := []interface{}{t, v, labels["instance"], labels["job"], labels["auth"], labels["env"], labels["ifName"], parseFloat(labels["ifIndex"]), labels["module"]}
-		fmt.Println("buildParams", labels["__name__"], "Row values:", row)
+		fmt.Println("buildParams", metricName, "Row values:", row)
 		return row
 	default:
 		return nil
