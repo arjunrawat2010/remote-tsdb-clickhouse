@@ -110,10 +110,10 @@ func NewClickHouseAdapter(config *Config) (*ClickHouseAdapter, error) {
 			Password: config.Password,
 		},
 		Debug:           config.Debug,
-		DialTimeout:     5 * time.Second,
+		DialTimeout:     10 * time.Second,
 		Protocol:        clickhouse.Native,
-		MaxOpenConns:    16,
-		MaxIdleConns:    1,
+		MaxOpenConns:    64,
+		MaxIdleConns:    10,
 		ConnMaxLifetime: time.Hour,
 	})
 	if err != nil {
