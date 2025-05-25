@@ -668,6 +668,8 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		// }
 
 	}
+
+	fmt.Println("== === == ==Sending prep Batch for  -- ------ === === =")
 	for tableName, batch := range batches {
 		err := batch.Send()
 
