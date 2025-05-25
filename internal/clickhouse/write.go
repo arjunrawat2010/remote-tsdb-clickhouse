@@ -71,14 +71,14 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 	}()
 
 	// Adjust insert statement to match your schema
-	stmt, err := tx.PrepareContext(ctx,
-		fmt.Sprintf("INSERT INTO %s (updated_at, metric_name, value, instance, job, env) VALUES (?, ?, ?, ?, ?, ?)", ch.table))
-	if err != nil {
-		return 0, err
-	}
-	defer stmt.Close()
+	// stmt, err := tx.PrepareContext(ctx,
+	// 	fmt.Sprintf("INSERT INTO %s (updated_at, metric_name, value, instance, job, env) VALUES (?, ?, ?, ?, ?, ?)", ch.table))
+	// if err != nil {
+	// 	return 0, err
+	// }
+	// defer stmt.Close()
 
-	count := 0
+	// count := 0
 
 	for _, ts := range req.Timeseries {
 		var metricName string
@@ -93,7 +93,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 
 		tableName := fmt.Sprintf("metrics_%s", metricName)
 		query := getInsertQuery(ch.databse_name, metricName, tableName)
-
+		count := 0
 		if query != "" {
 			fmt.Println(query)
 			stmt, err := tx.PrepareContext(ctx, query)
