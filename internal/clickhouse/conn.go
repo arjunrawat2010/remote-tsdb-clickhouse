@@ -2,6 +2,7 @@ package clickhouse
 
 import (
 	// "database/sql"
+	"context"
 	"fmt"
 	"regexp"
 	"time"
@@ -39,6 +40,64 @@ type Config struct {
 	Debug bool
 }
 
+// func NewClickHouseAdapter(config *Config) (*ClickHouseAdapter, error) {
+// 	if !clickHouseIdentifier.MatchString(config.Table) {
+// 		return nil, fmt.Errorf("invalid table name: use non-quoted identifier")
+// 	}
+// 	db, err := clickhouse.Open(&clickhouse.Options{
+// 		Addr: []string{config.Address},
+// 		Auth: clickhouse.Auth{
+// 			Database: config.Database,
+// 			Username: config.Username,
+// 			Password: config.Password,
+// 		},
+// 		Debug:       config.Debug,
+// 		DialTimeout: 5 * time.Second,
+// 		Protocol:    clickhouse.Native,
+// 				MaxOpenConns:    16,
+// 		MaxIdleConns:    1,
+// 		ConnMaxLifetime: time.Hour,
+// 	})
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error connecting to ClickHouse: %w", err)
+// 	}
+
+// 	// db := clickhouse.OpenDB(&clickhouse.Options{
+// 	// 	Addr: []string{config.Address},
+// 	// 	Auth: clickhouse.Auth{
+// 	// 		Database: config.Database,
+// 	// 		Username: config.Username,
+// 	// 		Password: config.Password,
+// 	// 	},
+// 	// 	Debug:       config.Debug,
+// 	// 	DialTimeout: 5 * time.Second,
+// 	// 	//MaxOpenConns:    16,
+// 	// 	//MaxIdleConns:    1,
+// 	// 	//ConnMaxLifetime: time.Hour,
+// 	// })
+// 	// db.SetMaxOpenConns(16)
+// 	// db.SetMaxIdleConns(1)
+// 	// db.SetConnMaxLifetime(time.Hour)
+
+// 	// Immediately try to connect with the provided credentials, fail fast.
+// 	if err := db.Ping(); err != nil {
+// 		return nil, fmt.Errorf("unable to connect to clickhouse server: %w", err)
+// 	}
+// 	return &ClickHouseAdapter{
+// 		db:              db,
+// 		databse_name:    config.Database,
+// 		table:           config.Table,
+// 		readIgnoreLabel: config.ReadIgnoreLabel,
+// 		readIgnoreHints: config.ReadIgnoreHints}, nil
+// 	// return &ClickHouseAdapter{
+// 	// 	db:              db,
+// 	// 	databse_name:    config.Database,
+// 	// 	table:           config.Table,
+// 	// 	readIgnoreLabel: config.ReadIgnoreLabel,
+// 	// 	readIgnoreHints: config.ReadIgnoreHints,
+// 	// }, nil
+// }
+
 func NewClickHouseAdapter(config *Config) (*ClickHouseAdapter, error) {
 	if !clickHouseIdentifier.MatchString(config.Table) {
 		return nil, fmt.Errorf("invalid table name: use non-quoted identifier")
@@ -50,46 +109,26 @@ func NewClickHouseAdapter(config *Config) (*ClickHouseAdapter, error) {
 			Username: config.Username,
 			Password: config.Password,
 		},
-		Debug:       config.Debug,
-		DialTimeout: 5 * time.Second,
-		Protocol:    clickhouse.Native,
+		Debug:           config.Debug,
+		DialTimeout:     5 * time.Second,
+		Protocol:        clickhouse.Native,
+		MaxOpenConns:    16,
+		MaxIdleConns:    1,
+		ConnMaxLifetime: time.Hour,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to ClickHouse: %w", err)
 	}
 
-	// db := clickhouse.OpenDB(&clickhouse.Options{
-	// 	Addr: []string{config.Address},
-	// 	Auth: clickhouse.Auth{
-	// 		Database: config.Database,
-	// 		Username: config.Username,
-	// 		Password: config.Password,
-	// 	},
-	// 	Debug:       config.Debug,
-	// 	DialTimeout: 5 * time.Second,
-	// 	//MaxOpenConns:    16,
-	// 	//MaxIdleConns:    1,
-	// 	//ConnMaxLifetime: time.Hour,
-	// })
-	// db.SetMaxOpenConns(16)
-	// db.SetMaxIdleConns(1)
-	// db.SetConnMaxLifetime(time.Hour)
-
-	// Immediately try to connect with the provided credentials, fail fast.
-	if err := db.Ping(); err != nil {
+	if err := db.Ping(context.Background()); err != nil {
 		return nil, fmt.Errorf("unable to connect to clickhouse server: %w", err)
 	}
+
 	return &ClickHouseAdapter{
 		db:              db,
 		databse_name:    config.Database,
 		table:           config.Table,
 		readIgnoreLabel: config.ReadIgnoreLabel,
-		readIgnoreHints: config.ReadIgnoreHints}, nil
-	// return &ClickHouseAdapter{
-	// 	db:              db,
-	// 	databse_name:    config.Database,
-	// 	table:           config.Table,
-	// 	readIgnoreLabel: config.ReadIgnoreLabel,
-	// 	readIgnoreHints: config.ReadIgnoreHints,
-	// }, nil
+		readIgnoreHints: config.ReadIgnoreHints,
+	}, nil
 }
