@@ -456,11 +456,26 @@ import (
 )
 
 var metricColumns = map[string]string{
-	// "hwAvgDuty5min":     "timestamp, value, instance, job, auth, env, hwCpuDevIndex, hwFrameIndex, hwSlotIndex, module",
-	// "hwMemoryDevFree":   "timestamp, value, instance, job, auth, env, hwMemoryDevModuleIndex, hwFrameIndex, hwSlotIndex, module",
-	"ifAlias": "updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module",
-	// "ifDescr":           "timestamp, value, instance, job, auth, env, descr, ifIndex, module",
-	// "ifName":            "timestamp, value, instance, job, auth, env, name, ifIndex, module",
+	"hwAvgDuty5min":              "updated_at, value, instance, job, auth, env, hwCpuDevIndex, hwFrameIndex, hwSlotIndex, module",
+	"hwMemoryDevFree":            "updated_at, value, instance, job, auth, env, hwMemoryDevModuleIndex, hwFrameIndex, hwSlotIndex, module",
+	"ifAlias":                    "updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module",
+	"ifDescr":                    "updated_at, value, instance, job, auth, env, ifDescr, ifIndex, module",
+	"ifName":                     "updated_at, value, instance, job, auth, env, ifName, ifIndex, module",
+	"sysDescr":                   "updated_at, value, instance, job, auth, env, sysDescr, module",
+	"ifAdminStatus":              "updated_at, value, instance, job, auth, env, ifIndex, module",
+	"ifConnectorPresent":         "updated_at, value, instance, job, auth, env, ifIndex, module",
+	"ifCounterDiscontinuityTime": "updated_at, value, instance, job, auth, env, ifIndex, module",
+	"ifHCInOctets":               "updated_at, value, instance, job, auth, env, ifIndex, module",
+	"ifHCOutOctets":              "updated_at, value, instance, job, auth, env, ifIndex, module",
+	"ifHighSpeed":                "updated_at, value, instance, job, auth, env, ifIndex, module",
+	"ifIndex":                    "updated_at, value, instance, job, auth, env, ifIndex, module",
+	"ifInErrors":                 "updated_at, value, instance, job, auth, env, ifIndex, module",
+	"ifLastChange":               "updated_at, value, instance, job, auth, env, ifIndex, module",
+	"ifLinkUpDownTrapEnable":     "updated_at, value, instance, job, auth, env, ifIndex, module",
+	"ifMtu":                      "updated_at, value, instance, job, auth, env, ifIndex, module",
+	"ifOperStatus":               "updated_at, value, instance, job, auth, env, ifIndex, module",
+	"ifSpeed":                    "updated_at, value, instance, job, auth, env, ifIndex, module",
+	"ifType":                     "updated_at, value, instance, job, auth, env, ifIndex, module",
 }
 
 func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.WriteRequest) (int, error) {
@@ -482,7 +497,8 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		// batch, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, getColumnListForMetric(metricName)))
 		columnList, ok := getColumnListForMetric(metricName)
 		if !ok {
-			fmt.Printf("Unsupported metric: %s", metricName)
+			// fmt.Printf("Unsupported metric: %s", metricName)
+			// fmt.Println()
 			continue
 		}
 
@@ -491,76 +507,54 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		if err != nil {
 			return 0, fmt.Errorf("prepare batch for table %s: %w", tableName, err)
 		}
-		if err != nil {
-			return 0, fmt.Errorf("prepare batch for table %s: %w", tableName, err)
-		}
 
 		switch metricName {
-		// case "hwAvgDuty5min":
-		// 	for _, sample := range ts.Samples {
-		// 		hwCpuDevIndex, _ := strconv.ParseFloat(labelsMap["hwCpuDevIndex"], 64)
-		// 		hwFrameIndex, _ := strconv.ParseFloat(labelsMap["hwFrameIndex"], 64)
-		// 		hwSlotIndex, _ := strconv.ParseFloat(labelsMap["hwSlotIndex"], 64)
-		// 		err := batch.Append(
-		// 			time.UnixMilli(sample.Timestamp).UTC(),
-		// 			sample.Value,
-		// 			labelsMap["instance"],
-		// 			labelsMap["job"],
-		// 			labelsMap["auth"],
-		// 			labelsMap["env"],
-		// 			hwCpuDevIndex,
-		// 			hwFrameIndex,
-		// 			hwSlotIndex,
-		// 			labelsMap["module"],
-		// 		)
-		// 		if err != nil {
-		// 			return 0, err
-		// 		}
-		// 		count++
-		// 	}
+		case "hwAvgDuty5min":
+			for _, sample := range ts.Samples {
+				hwCpuDevIndex, _ := strconv.ParseFloat(labelsMap["hwCpuDevIndex"], 64)
+				hwFrameIndex, _ := strconv.ParseFloat(labelsMap["hwFrameIndex"], 64)
+				hwSlotIndex, _ := strconv.ParseFloat(labelsMap["hwSlotIndex"], 64)
+				err := batch.Append(
+					time.UnixMilli(sample.Timestamp).UTC(),
+					sample.Value,
+					labelsMap["instance"],
+					labelsMap["job"],
+					labelsMap["auth"],
+					labelsMap["env"],
+					hwCpuDevIndex,
+					hwFrameIndex,
+					hwSlotIndex,
+					labelsMap["module"],
+				)
+				if err != nil {
+					return 0, err
+				}
+				count++
+			}
 
-		// case "hwMemoryDevFree":
-		// 	for _, sample := range ts.Samples {
-		// 		hwMemoryDevModuleIndex, _ := strconv.ParseFloat(labelsMap["hwMemoryDevModuleIndex"], 64)
-		// 		hwFrameIndex, _ := strconv.ParseFloat(labelsMap["hwFrameIndex"], 64)
-		// 		hwSlotIndex, _ := strconv.ParseFloat(labelsMap["hwSlotIndex"], 64)
-		// 		err := batch.Append(
-		// 			time.UnixMilli(sample.Timestamp).UTC(),
-		// 			sample.Value,
-		// 			labelsMap["instance"],
-		// 			labelsMap["job"],
-		// 			labelsMap["auth"],
-		// 			labelsMap["env"],
-		// 			hwMemoryDevModuleIndex,
-		// 			hwFrameIndex,
-		// 			hwSlotIndex,
-		// 			labelsMap["module"],
-		// 		)
-		// 		if err != nil {
-		// 			return 0, err
-		// 		}
-		// 		count++
-		// 	}
+		case "hwMemoryDevFree":
+			for _, sample := range ts.Samples {
+				hwMemoryDevModuleIndex, _ := strconv.ParseFloat(labelsMap["hwMemoryDevModuleIndex"], 64)
+				hwFrameIndex, _ := strconv.ParseFloat(labelsMap["hwFrameIndex"], 64)
+				hwSlotIndex, _ := strconv.ParseFloat(labelsMap["hwSlotIndex"], 64)
+				err := batch.Append(
+					time.UnixMilli(sample.Timestamp).UTC(),
+					sample.Value,
+					labelsMap["instance"],
+					labelsMap["job"],
+					labelsMap["auth"],
+					labelsMap["env"],
+					hwMemoryDevModuleIndex,
+					hwFrameIndex,
+					hwSlotIndex,
+					labelsMap["module"],
+				)
+				if err != nil {
+					return 0, err
+				}
+				count++
+			}
 
-		// case "ifAlias", "ifDescr", "ifName":
-		// 	for _, sample := range ts.Samples {
-		// 		ifIndex, _ := strconv.ParseFloat(labelsMap["ifIndex"], 64)
-		// 		err := batch.Append(
-		// 			time.UnixMilli(sample.Timestamp).UTC(),
-		// 			sample.Value,
-		// 			labelsMap["instance"],
-		// 			labelsMap["job"],
-		// 			labelsMap["auth"],
-		// 			labelsMap["env"],
-		// 			labelsMap[metricName],
-		// 			ifIndex,
-		// 			labelsMap["module"],
-		// 		)
-		// 		if err != nil {
-		// 			return 0, err
-		// 		}
-		// 		count++
-		// 	}
 		case "ifAlias":
 			for _, sample := range ts.Samples {
 				ifIndex, _ := strconv.ParseFloat(labelsMap["ifIndex"], 64)
@@ -580,9 +574,78 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				}
 				count++
 			}
-			// t, v, labels["instance"], labels["job"], labels["auth"], labels["env"], labels["ifAlias"], parseFloat(labels["ifIndex"]), labels["module"]}
+		case "ifDescr":
+			for _, sample := range ts.Samples {
+				ifIndex, _ := strconv.ParseFloat(labelsMap["ifIndex"], 64)
+				err := batch.Append(
+					time.UnixMilli(sample.Timestamp).UTC(),
+					sample.Value,
+					labelsMap["instance"],
+					labelsMap["job"],
+					labelsMap["auth"],
+					labelsMap["env"],
+					labelsMap["ifDescr"],
+					ifIndex,
+					labelsMap["module"],
+				)
+				if err != nil {
+					return 0, err
+				}
+				count++
+			}
+		case "ifName":
+			for _, sample := range ts.Samples {
+				ifIndex, _ := strconv.ParseFloat(labelsMap["ifIndex"], 64)
+				err := batch.Append(
+					time.UnixMilli(sample.Timestamp).UTC(),
+					sample.Value,
+					labelsMap["instance"],
+					labelsMap["job"],
+					labelsMap["auth"],
+					labelsMap["env"],
+					labelsMap["ifName"],
+					ifIndex,
+					labelsMap["module"],
+				)
+				if err != nil {
+					return 0, err
+				}
+				count++
+			}
+		case "ifAdminStatus":
+		case "ifConnectorPresent":
+		case "ifCounterDiscontinuityTime":
+		case "ifHCInOctets":
+		case "ifHCOutOctets":
+		case "ifHighSpeed":
+		case "ifIndex":
+		case "ifInErrors":
+		case "ifLastChange":
+		case "ifLinkUpDownTrapEnable":
+		case "ifMtu":
+		case "ifOperStatus":
+		case "ifSpeed":
+		case "ifType":
+			for _, sample := range ts.Samples {
+				ifIndex, _ := strconv.ParseFloat(labelsMap["ifIndex"], 64)
+				err := batch.Append(
+					time.UnixMilli(sample.Timestamp).UTC(),
+					sample.Value,
+					labelsMap["instance"],
+					labelsMap["job"],
+					labelsMap["auth"],
+					labelsMap["env"],
+					ifIndex,
+					labelsMap["module"],
+				)
+				if err != nil {
+					return 0, err
+				}
+				count++
+			}
+
 		default:
-			fmt.Printf("Unsupported metric: %s\n", metricName)
+			// fmt.Printf("Unsupported metric: %s\n", metricName)
 			continue
 		}
 
