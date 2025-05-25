@@ -599,7 +599,9 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 
 		tableName := fmt.Sprintf("metrics_%s", metricName)
 		if _, ok := stmtCache[metricName]; !ok {
-			stmt, err := tx.PrepareContext(ctx, getInsertQuery(ch.databse_name, metricName, tableName))
+			query := getInsertQuery(ch.databse_name, metricName, tableName)
+			fmt.Println(query)
+			stmt, err := tx.PrepareContext(ctx, query)
 			if err != nil {
 				return 0, err
 			}
@@ -608,6 +610,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 
 		for _, sample := range ts.Samples {
 			params := buildParams(sample, labelsMap)
+			fmt.Println(params...)
 			batchCache[metricName] = append(batchCache[metricName], params...)
 			count++
 
