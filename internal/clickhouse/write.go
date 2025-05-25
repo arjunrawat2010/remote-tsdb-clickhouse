@@ -452,6 +452,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/prometheus/prometheus/prompb"
 )
 
@@ -482,6 +483,27 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 	conn := ch.db // clickhouse.Conn from clickhouse-go/v2
 	count := 0
 
+	// Map to keep batches per table
+	// batches := make(map[string]clickhouse.Batch)
+	batches := ch.batches
+	// Map to keep column lists per metric for reusing
+	// columnLists := make(map[string]string)
+	// getBatch := func(tableName, columnList string) (chdriver.Batch, error) { ... }
+
+	// Helper function to get or create batch for a table
+	getBatch := func(tableName, columnList string) (driver.Batch, error) {
+		batch, exists := batches[tableName]
+		if exists {
+			return batch, nil
+		}
+		b, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, columnList))
+		if err != nil {
+			return nil, err
+		}
+		batches[tableName] = b
+		return b, nil
+	}
+
 	for _, ts := range req.Timeseries {
 		var metricName string
 		labelsMap := make(map[string]string)
@@ -503,7 +525,8 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		}
 
 		tableName := fmt.Sprintf("metrics_%s", metricName)
-		batch, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, columnList))
+		// batch, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, columnList))
+		batch, err := getBatch(tableName, columnList)
 		if err != nil {
 			return 0, fmt.Errorf("prepare batch for table %s: %w", tableName, err)
 		}
@@ -612,20 +635,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				}
 				count++
 			}
-		case "ifAdminStatus":
-		case "ifConnectorPresent":
-		case "ifCounterDiscontinuityTime":
-		case "ifHCInOctets":
-		case "ifHCOutOctets":
-		case "ifHighSpeed":
-		case "ifIndex":
-		case "ifInErrors":
-		case "ifLastChange":
-		case "ifLinkUpDownTrapEnable":
-		case "ifMtu":
-		case "ifOperStatus":
-		case "ifSpeed":
-		case "ifType":
+		case "ifAdminStatus", "ifConnectorPresent", "ifCounterDiscontinuityTime", "ifHCInOctets", "ifHCOutOctets", "ifHighSpeed", "ifIndex", "ifInErrors", "ifLastChange", "ifLinkUpDownTrapEnable", "ifMtu", "ifOperStatus", "ifSpeed", "ifType":
 			for _, sample := range ts.Samples {
 				ifIndex, _ := strconv.ParseFloat(labelsMap["ifIndex"], 64)
 				err := batch.Append(
@@ -649,12 +659,16 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 			continue
 		}
 
+		// if err := batch.Send(); err != nil {
+		// 	return 0, fmt.Errorf("send batch to table %s: %w", tableName, err)
+		// }
+
+	}
+	for tableName, batch := range batches {
 		if err := batch.Send(); err != nil {
 			return 0, fmt.Errorf("send batch to table %s: %w", tableName, err)
 		}
-
 	}
-
 	return count, nil
 }
 

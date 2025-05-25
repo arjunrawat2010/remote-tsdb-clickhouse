@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	chdriver "github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 )
 
 // ClickHouse syntax reference
@@ -20,7 +21,9 @@ type ClickHouseAdapter struct {
 	// technically being a "driver.Conn"
 	// db              *sql.DB
 	// conn clickhouse.Conn
+	// batches         map[string]clickhouse.Batch
 	db              clickhouse.Conn
+	batches         map[string]chdriver.Batch
 	databse_name    string
 	table           string
 	readIgnoreLabel string
