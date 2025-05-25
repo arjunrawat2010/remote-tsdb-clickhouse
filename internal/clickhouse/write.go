@@ -536,9 +536,9 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		}
 	}
 
-	if err := tx.Commit(); err != nil {
-		return 0, err
-	}
+	// if err := tx.Commit(); err != nil {
+	// 	return 0, err
+	// }
 
 	return count, nil
 }
