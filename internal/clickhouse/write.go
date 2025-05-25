@@ -558,6 +558,19 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 			_ = tx.Rollback()
 		}
 	}()
+	defer func() {
+		if err != nil {
+			fmt.Printf("Rolling back due to error: %v", err)
+			fmt.Println()
+			_ = tx.Rollback()
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				fmt.Printf("Failed to commit transaction: %v", err)
+				fmt.Println()
+			}
+		}
+	}()
 
 	stmtCache := make(map[string]*sql.Stmt)
 	batchCache := make(map[string][]interface{})
