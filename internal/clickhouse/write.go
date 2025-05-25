@@ -639,6 +639,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 }
 
 func getInsertQuery(db, metric string, tableName string) string {
+	fmt.Println(db, metric, tableName)
 	switch metric {
 	case "hwAvgDuty5min":
 		return fmt.Sprintf("INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, hwCpuDevIndex, hwFrameIndex, hwSlotIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", db, tableName)
