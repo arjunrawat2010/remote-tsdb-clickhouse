@@ -494,8 +494,9 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 	getBatch := func(tableName, columnList string) (driver.Batch, error) {
 
 		batch, exists := batches[tableName]
-		fmt.Println(tableName, batch, exists)
+
 		if exists {
+			fmt.Println("Existing batch -- ", tableName, batch, exists)
 			return batch, nil
 		}
 		b, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, columnList))
@@ -503,6 +504,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 			return nil, err
 		}
 		batches[tableName] = b
+		fmt.Println("New batch -- ", tableName, batch, exists)
 		return b, nil
 	}
 
@@ -667,8 +669,12 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 
 	}
 	for tableName, batch := range batches {
-		if err := batch.Send(); err != nil {
+		err := batch.Send()
+
+		if err != nil {
 			return 0, fmt.Errorf("send batch to table %s: %w", tableName, err)
+		} else {
+			fmt.Println("Sending Batch for  -- ", tableName, batch)
 		}
 	}
 	return count, nil
