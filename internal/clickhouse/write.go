@@ -613,7 +613,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 			}
 
 		}
-
+		fmt.Println("ts.Samples--", ts.Samples)
 		for _, sample := range ts.Samples {
 			params := buildParams(sample, labelsMap)
 			fmt.Println(params...)
