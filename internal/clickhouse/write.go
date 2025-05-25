@@ -484,8 +484,8 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 	count := 0
 
 	// Map to keep batches per table
-	// batches := make(map[string]clickhouse.Batch)
-	batches := ch.batches
+	batches := make(map[string]driver.Batch)
+	// batches := ch.batches
 	// Map to keep column lists per metric for reusing
 	// columnLists := make(map[string]string)
 	// getBatch := func(tableName, columnList string) (chdriver.Batch, error) { ... }
