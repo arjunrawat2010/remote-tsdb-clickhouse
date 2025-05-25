@@ -601,11 +601,16 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		if _, ok := stmtCache[metricName]; !ok {
 			query := getInsertQuery(ch.databse_name, metricName, tableName)
 			fmt.Println(query)
-			stmt, err := tx.PrepareContext(ctx, query)
-			if err != nil {
-				return 0, err
+			if query != "" {
+				stmt, err := tx.PrepareContext(ctx, query)
+				if err != nil {
+					return 0, err
+				}
+				stmtCache[metricName] = stmt
+			} else {
+				return 0, nil
 			}
-			stmtCache[metricName] = stmt
+
 		}
 
 		for _, sample := range ts.Samples {
