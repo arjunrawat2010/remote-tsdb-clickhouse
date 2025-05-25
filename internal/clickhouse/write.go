@@ -615,7 +615,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		}
 		fmt.Println("ts.Samples--", ts.Samples)
 		for _, sample := range ts.Samples {
-			fmt.Println("ts.Samples inside--", ts.Samples)
+			fmt.Println("ts.Samples inside--", labelsMap)
 			params := buildParams(sample, labelsMap)
 			fmt.Println(params...)
 			batchCache[metricName] = append(batchCache[metricName], params...)
