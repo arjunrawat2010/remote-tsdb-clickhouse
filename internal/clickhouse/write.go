@@ -472,59 +472,79 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		}
 
 		tableName := fmt.Sprintf("metrics_%s", metricName)
-		batch, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s VALUES", tableName))
+		batch, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, getColumnListForMetric(metricName)))
+
 		if err != nil {
 			return 0, fmt.Errorf("prepare batch for table %s: %w", tableName, err)
 		}
 
 		switch metricName {
-		case "hwAvgDuty5min":
-			for _, sample := range ts.Samples {
-				hwCpuDevIndex, _ := strconv.ParseFloat(labelsMap["hwCpuDevIndex"], 64)
-				hwFrameIndex, _ := strconv.ParseFloat(labelsMap["hwFrameIndex"], 64)
-				hwSlotIndex, _ := strconv.ParseFloat(labelsMap["hwSlotIndex"], 64)
-				err := batch.Append(
-					time.UnixMilli(sample.Timestamp).UTC(),
-					sample.Value,
-					labelsMap["instance"],
-					labelsMap["job"],
-					labelsMap["auth"],
-					labelsMap["env"],
-					hwCpuDevIndex,
-					hwFrameIndex,
-					hwSlotIndex,
-					labelsMap["module"],
-				)
-				if err != nil {
-					return 0, err
-				}
-				count++
-			}
+		// case "hwAvgDuty5min":
+		// 	for _, sample := range ts.Samples {
+		// 		hwCpuDevIndex, _ := strconv.ParseFloat(labelsMap["hwCpuDevIndex"], 64)
+		// 		hwFrameIndex, _ := strconv.ParseFloat(labelsMap["hwFrameIndex"], 64)
+		// 		hwSlotIndex, _ := strconv.ParseFloat(labelsMap["hwSlotIndex"], 64)
+		// 		err := batch.Append(
+		// 			time.UnixMilli(sample.Timestamp).UTC(),
+		// 			sample.Value,
+		// 			labelsMap["instance"],
+		// 			labelsMap["job"],
+		// 			labelsMap["auth"],
+		// 			labelsMap["env"],
+		// 			hwCpuDevIndex,
+		// 			hwFrameIndex,
+		// 			hwSlotIndex,
+		// 			labelsMap["module"],
+		// 		)
+		// 		if err != nil {
+		// 			return 0, err
+		// 		}
+		// 		count++
+		// 	}
 
-		case "hwMemoryDevFree":
-			for _, sample := range ts.Samples {
-				hwMemoryDevModuleIndex, _ := strconv.ParseFloat(labelsMap["hwMemoryDevModuleIndex"], 64)
-				hwFrameIndex, _ := strconv.ParseFloat(labelsMap["hwFrameIndex"], 64)
-				hwSlotIndex, _ := strconv.ParseFloat(labelsMap["hwSlotIndex"], 64)
-				err := batch.Append(
-					time.UnixMilli(sample.Timestamp).UTC(),
-					sample.Value,
-					labelsMap["instance"],
-					labelsMap["job"],
-					labelsMap["auth"],
-					labelsMap["env"],
-					hwMemoryDevModuleIndex,
-					hwFrameIndex,
-					hwSlotIndex,
-					labelsMap["module"],
-				)
-				if err != nil {
-					return 0, err
-				}
-				count++
-			}
+		// case "hwMemoryDevFree":
+		// 	for _, sample := range ts.Samples {
+		// 		hwMemoryDevModuleIndex, _ := strconv.ParseFloat(labelsMap["hwMemoryDevModuleIndex"], 64)
+		// 		hwFrameIndex, _ := strconv.ParseFloat(labelsMap["hwFrameIndex"], 64)
+		// 		hwSlotIndex, _ := strconv.ParseFloat(labelsMap["hwSlotIndex"], 64)
+		// 		err := batch.Append(
+		// 			time.UnixMilli(sample.Timestamp).UTC(),
+		// 			sample.Value,
+		// 			labelsMap["instance"],
+		// 			labelsMap["job"],
+		// 			labelsMap["auth"],
+		// 			labelsMap["env"],
+		// 			hwMemoryDevModuleIndex,
+		// 			hwFrameIndex,
+		// 			hwSlotIndex,
+		// 			labelsMap["module"],
+		// 		)
+		// 		if err != nil {
+		// 			return 0, err
+		// 		}
+		// 		count++
+		// 	}
 
-		case "ifAlias", "ifDescr", "ifName":
+		// case "ifAlias", "ifDescr", "ifName":
+		// 	for _, sample := range ts.Samples {
+		// 		ifIndex, _ := strconv.ParseFloat(labelsMap["ifIndex"], 64)
+		// 		err := batch.Append(
+		// 			time.UnixMilli(sample.Timestamp).UTC(),
+		// 			sample.Value,
+		// 			labelsMap["instance"],
+		// 			labelsMap["job"],
+		// 			labelsMap["auth"],
+		// 			labelsMap["env"],
+		// 			labelsMap[metricName],
+		// 			ifIndex,
+		// 			labelsMap["module"],
+		// 		)
+		// 		if err != nil {
+		// 			return 0, err
+		// 		}
+		// 		count++
+		// 	}
+		case "ifAlias":
 			for _, sample := range ts.Samples {
 				ifIndex, _ := strconv.ParseFloat(labelsMap["ifIndex"], 64)
 				err := batch.Append(
@@ -534,7 +554,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 					labelsMap["job"],
 					labelsMap["auth"],
 					labelsMap["env"],
-					labelsMap[metricName],
+					labelsMap["ifAlias"],
 					ifIndex,
 					labelsMap["module"],
 				)
@@ -543,7 +563,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 				}
 				count++
 			}
-
+			// t, v, labels["instance"], labels["job"], labels["auth"], labels["env"], labels["ifAlias"], parseFloat(labels["ifIndex"]), labels["module"]}
 		default:
 			fmt.Printf("Unsupported metric: %s\n", metricName)
 			continue
@@ -556,3 +576,19 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 
 	return count, nil
 }
+func getColumnListForMetric(metricName string) string {
+	switch metricName {
+	// case "hwAvgDuty5min":
+	// 	return "timestamp, value, instance, job, auth, env, hwCpuDevIndex, hwFrameIndex, hwSlotIndex, module"
+	// case "hwMemoryDevFree":
+	// 	return "timestamp, value, instance, job, auth, env, hwMemoryDevModuleIndex, hwFrameIndex, hwSlotIndex, module"
+	// case "ifAlias", "ifDescr", "ifName":
+	// 	return "timestamp, value, instance, job, auth, env, alias, ifIndex, module"
+	case "ifAlias":
+		return "updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module"
+	default:
+		return ""
+	}
+}
+
+// "INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", db, tableName)
