@@ -455,6 +455,14 @@ import (
 	"github.com/prometheus/prometheus/prompb"
 )
 
+var metricColumns = map[string]string{
+	// "hwAvgDuty5min":     "timestamp, value, instance, job, auth, env, hwCpuDevIndex, hwFrameIndex, hwSlotIndex, module",
+	// "hwMemoryDevFree":   "timestamp, value, instance, job, auth, env, hwMemoryDevModuleIndex, hwFrameIndex, hwSlotIndex, module",
+	"ifAlias": "updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module",
+	// "ifDescr":           "timestamp, value, instance, job, auth, env, descr, ifIndex, module",
+	// "ifName":            "timestamp, value, instance, job, auth, env, name, ifIndex, module",
+}
+
 func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.WriteRequest) (int, error) {
 	conn := ch.db // clickhouse.Conn from clickhouse-go/v2
 	count := 0
@@ -471,9 +479,18 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 			}
 		}
 
-		tableName := fmt.Sprintf("metrics_%s", metricName)
-		batch, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, getColumnListForMetric(metricName)))
+		// batch, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, getColumnListForMetric(metricName)))
+		columnList, ok := getColumnListForMetric(metricName)
+		if !ok {
+			fmt.Printf("Unsupported metric: %s", metricName)
+			continue
+		}
 
+		tableName := fmt.Sprintf("metrics_%s", metricName)
+		batch, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, columnList))
+		if err != nil {
+			return 0, fmt.Errorf("prepare batch for table %s: %w", tableName, err)
+		}
 		if err != nil {
 			return 0, fmt.Errorf("prepare batch for table %s: %w", tableName, err)
 		}
@@ -572,23 +589,29 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		if err := batch.Send(); err != nil {
 			return 0, fmt.Errorf("send batch to table %s: %w", tableName, err)
 		}
+
 	}
 
 	return count, nil
 }
-func getColumnListForMetric(metricName string) string {
-	switch metricName {
-	// case "hwAvgDuty5min":
-	// 	return "timestamp, value, instance, job, auth, env, hwCpuDevIndex, hwFrameIndex, hwSlotIndex, module"
-	// case "hwMemoryDevFree":
-	// 	return "timestamp, value, instance, job, auth, env, hwMemoryDevModuleIndex, hwFrameIndex, hwSlotIndex, module"
-	// case "ifAlias", "ifDescr", "ifName":
-	// 	return "timestamp, value, instance, job, auth, env, alias, ifIndex, module"
-	case "ifAlias":
-		return "updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module"
-	default:
-		return ""
-	}
+
+//	func getColumnListForMetric(metricName string) string {
+//		switch metricName {
+//		// case "hwAvgDuty5min":
+//		// 	return "timestamp, value, instance, job, auth, env, hwCpuDevIndex, hwFrameIndex, hwSlotIndex, module"
+//		// case "hwMemoryDevFree":
+//		// 	return "timestamp, value, instance, job, auth, env, hwMemoryDevModuleIndex, hwFrameIndex, hwSlotIndex, module"
+//		// case "ifAlias", "ifDescr", "ifName":
+//		// 	return "timestamp, value, instance, job, auth, env, alias, ifIndex, module"
+//		case "ifAlias":
+//			return "updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module"
+//		default:
+//			return ""
+//		}
+//	}
+func getColumnListForMetric(metric string) (string, bool) {
+	cols, ok := metricColumns[metric]
+	return cols, ok
 }
 
 // "INSERT INTO %s.%s (updated_at, value, instance, job, auth, env, ifAlias, ifIndex, module) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", db, tableName)
