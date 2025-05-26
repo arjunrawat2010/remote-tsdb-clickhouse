@@ -499,7 +499,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 			fmt.Println("Existing batch -- ", tableName, batch, exists)
 			return batch, nil
 		}
-		b, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, columnList))
+		b, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, columnList), driver.WithReleaseConnection())
 		if err != nil {
 			return nil, err
 		}
