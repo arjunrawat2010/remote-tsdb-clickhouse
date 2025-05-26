@@ -496,7 +496,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 		batch, exists := batches[tableName]
 
 		if exists {
-			fmt.Println("Existing batch -- ", tableName, batch, exists)
+			// fmt.Println("Existing batch -- ", tableName, batch, exists)
 			return batch, nil
 		}
 		b, err := conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s (%s) VALUES", tableName, columnList), driver.WithReleaseConnection())
@@ -504,7 +504,7 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 			return nil, err
 		}
 		batches[tableName] = b
-		fmt.Println("New batch -- ", tableName, batch, exists)
+		// fmt.Println("New batch -- ", tableName, batch, exists)
 		return b, nil
 	}
 
@@ -669,14 +669,14 @@ func (ch *ClickHouseAdapter) WriteRequest(ctx context.Context, req *prompb.Write
 
 	}
 
-	fmt.Println("== === == ==Sending prep Batch for  -- ------ === === =")
+	// fmt.Println("== === == ==Sending prep Batch for  -- ------ === === =")
 	for tableName, batch := range batches {
 		err := batch.Send()
 
 		if err != nil {
 			return 0, fmt.Errorf("send batch to table %s: %w", tableName, err)
 		} else {
-			fmt.Println("Sending Batch for  -- ", tableName, batch)
+			// fmt.Println("Sending Batch for  -- ", tableName, batch)
 		}
 	}
 	return count, nil
